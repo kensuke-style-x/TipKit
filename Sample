@@ -1,0 +1,67 @@
+import UIKit
+import TipKit
+
+
+
+class ViewController: UIViewController {
+    
+    
+    @IBOutlet weak var starButton: UIButton!
+    
+    let tipstar = Tipstar()
+    
+    var tipView: TipUIView?
+    
+    @IBAction func starButtonTapped(_ sender: Any) {
+        
+       
+       hideTipStar()
+        
+    }
+    
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Do any additional setup after loading the view.
+        
+       
+        
+       showTipstar()
+    }
+
+    
+    func showTipstar(){
+        
+        let tipView = TipUIView(tipstar, arrowEdge: .bottom)
+         
+         tipView.translatesAutoresizingMaskIntoConstraints = false
+         
+         view.addSubview(tipView)
+        
+         NSLayoutConstraint.activate([
+             tipView.bottomAnchor.constraint(equalTo: starButton.topAnchor, constant: -8),
+             tipView.centerXAnchor.constraint(equalTo: starButton.centerXAnchor)
+         ])
+        
+        self.tipView = tipView
+        
+    }
+    
+    func hideTipStar(){
+        
+        tipView?.removeFromSuperview()
+        
+        tipView = nil
+    }
+            
+        
+        
+       
+        
+    
+
+    
+    
+    
+}
+
