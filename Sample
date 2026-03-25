@@ -5,12 +5,16 @@ import TipKit
 
 class ViewController: UIViewController {
     
-    
     @IBOutlet weak var starButton: UIButton!
     
-    let tipstar = Tipstar()
+    private var tipstar = Tipstar()
     
-    var tipView: TipUIView?
+    private weak var tipView: TipUIView?
+    
+    private var tipObservationTask: Task<Void, Never>?
+    
+    private weak var tipPopoverController: TipUIPopoverViewController?
+    
     
     @IBAction func starButtonTapped(_ sender: Any) {
         
@@ -25,28 +29,78 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view.
         
        
-        
-       showTipstar()
+        //TipUIVIew
+        showTipstar()
+
+        //TipUIpopoverview
+        showTipstarPopover()
     }
 
-    
+ //TipUIView
+
     func showTipstar(){
         
-        let tipView = TipUIView(tipstar, arrowEdge: .bottom)
+        tipObservationTask = tipObservationTask ?? Task { @MainActor in
          
-         tipView.translatesAutoresizingMaskIntoConstraints = false
-         
-         view.addSubview(tipView)
+            for await shouldDisplay in tipstar.shouldDisplayUpdates{
+                
+                if shouldDisplay {
+                    
+                    let tipStarview = TipUIView(tipstar, arrowEdge: .bottom)
+                     
+                     tipStarview.translatesAutoresizingMaskIntoConstraints = false
+                     
+                     view.addSubview(tipStarview)
+                    
+                     NSLayoutConstraint.activate([
+                         tipStarview.bottomAnchor.constraint(equalTo: starButton.topAnchor, constant: -8),
+                         tipStarview.centerXAnchor.constraint(equalTo: starButton.centerXAnchor)
+                     ])
+                    
+                    tipView = tipStarview
+                    
+                } else {
+                    
+                    tipView?.removeFromSuperview()
+                    
+                    tipView = nil
+                }
+                
+            }
+        }
         
-         NSLayoutConstraint.activate([
-             tipView.bottomAnchor.constraint(equalTo: starButton.topAnchor, constant: -8),
-             tipView.centerXAnchor.constraint(equalTo: starButton.centerXAnchor)
-         ])
-        
-        self.tipView = tipView
+       
         
     }
-    
+
+//TipPopoverUIView
+
+    func showTipstarPopover(){
+        
+        tipObservationTask = tipObservationTask ?? Task{ @MainActor in
+        
+            for await shouldDisplay in tipstar.shouldDisplayUpdates{
+                
+                if shouldDisplay{
+                    
+                    let popoverController = TipUIPopoverViewController(tipstar, sourceItem: starButton)
+                    present(popoverController, animated: true)
+                    tipPopoverController = popoverController
+                    
+                } else {
+                    if presentedViewController is TipUIPopoverViewController{
+                        dismiss(animated: true)
+                        tipPopoverController = nil
+                    }
+                }
+            }
+            
+        }
+        
+        
+        
+    }
+
     func hideTipStar(){
         
         tipView?.removeFromSuperview()
